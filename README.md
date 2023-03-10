@@ -10,8 +10,11 @@ The list is not final, but it's a good start. We may add more scanners in the fu
 
 | ID | Description | Implemented |
 | --- | --- | --- |
-| simple-query | SimpleQuery scanner requests the URL as it is, with no modifications. It looks for query keys and values being reflected. | YES |
-| simple-headers | SimpleHeaders scanner requests the URL as it is, with no modifications. It looks for headers being reflected. | NO |
+| simple-query | Requests the URL as it is, with no modifications | YES |
+| postfix-keys | Appends a random token to every key in the query | NO |
+| postfix-values | Appends a random token to every value in the query | NO |
+| replace-values | Replaces values in a query with a random token | NO |
+| random-json | Creates a random JSON and sends it in the body | NO |
 
 ## Usage
 
