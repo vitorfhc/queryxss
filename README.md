@@ -6,19 +6,22 @@ QueryXSS is a tool to test for reflected inputs in the response.
 
 ## Scanners
 
-The list is not final, but it's a good start. We may add more scanners in the future.
+The list below shows the scanners that are currently implemented, and the ones that are planned to be implemented.
 
-| ID | Description | Implemented |
+If you have any suggestions, feel free to open an issue.
+
+| Name | Modifications | Implemented |
 | --- | --- | --- |
-| simple-query | Requests the URL as it is, with no modifications | YES |
-| postfix-keys | Appends a random token to every key in the query | NO |
-| postfix-values | Appends a random token to every value in the query | NO |
-| replace-values | Replaces values in a query with a random token | NO |
-| random-json | Creates a random JSON and sends it in the body | NO |
+| Simple | Requests the URL as it is, with no modifications | YES |
+| PostfixValues | Appends a random token to every value in the query | NO |
+| ReplaceValues | Replaces values in a query with a random token | NO |
 
 ## Usage
 
-```
+```bash
+$ queryxss -h                                    
+QueryXSS finds reflected values in the HTTP response.
+
 Usage:
   queryxss [flags]
 
@@ -28,6 +31,7 @@ Flags:
   -H, --header stringArray   Headers to send with the request (specify multiple times)
                              Example: -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Random: 1234'
   -h, --help                 help for queryxss
+  -m, --min-length uint      Minimum value's length to scan for reflections (default 3)
   -n, --no-color             Disable color output
   -r, --rate-limit uint      Number of requests per second (default 25)
   -s, --silent               Outputs only errors and the results
@@ -40,13 +44,13 @@ Flags:
 Make sure you have [Go installed and configured](https://go.dev/doc/install).
 
 ```bash
-go install github.com/vitorfhc/hacks/queryxss
+go install github.com/vitorfhc/queryxss/cmd/queryxss@latest
 ```
 
 ### Manual install
 
 ```bash
-git clone github.com/vitorfhc/hacks
-cd hacks/queryxss
+git clone github.com/vitorfhc/queryxss
+cd cmd/queryxss
 go install
 ```

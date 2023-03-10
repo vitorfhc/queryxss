@@ -13,8 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/vitorfhc/queryxss/pkg/httpclient"
-	"github.com/vitorfhc/queryxss/pkg/rscanner"
-	"github.com/vitorfhc/queryxss/pkg/utils"
+	"github.com/vitorfhc/queryxss/pkg/reflections"
 )
 
 type cliOptions struct {
@@ -25,6 +24,7 @@ type cliOptions struct {
 	Headers   []string
 	RateLimit uint
 	NoColor   bool
+	MinLength uint
 }
 
 var options cliOptions
@@ -61,7 +61,6 @@ var rootCmd = &cobra.Command{
 func run(cmd *cobra.Command, args []string) {
 	c := make(chan os.Signal, 1)
 	defer close(c)
-	// sigterm and sigint
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	cmdCtx, cmdCancel := context.WithCancel(context.Background())
 
@@ -110,8 +109,8 @@ func run(cmd *cobra.Command, args []string) {
 
 	headers := transformHeaders()
 
-	scanners := []rscanner.ReflectionScanner{
-		rscanner.NewSimpleQuery(),
+	scanners := []reflections.ScanFunc{
+		reflections.SimpleScan,
 	}
 
 	client := httpclient.NewHttpClient()
@@ -121,7 +120,7 @@ func run(cmd *cobra.Command, args []string) {
 	for inputScanner.Scan() {
 		logrus.Debugf("scanning: %q", inputScanner.Text())
 		input := inputScanner.Text()
-		input, err = utils.AddScheme(input)
+		input, err = reflections.AddScheme(input)
 		if err != nil {
 			logrus.Errorf("error adding scheme to %q: %v", input, err)
 			continue
@@ -131,19 +130,14 @@ func run(cmd *cobra.Command, args []string) {
 				logrus.Debug("context cancelled")
 				break
 			}
-			result, err := scanner.Scan(
-				client,
-				&rscanner.Input{
-					Url:     input,
-					Headers: headers,
-				})
+			result, err := scanner(client, input, options.MinLength)
 			if err != nil {
 				logrus.Errorf("error scanning %q: %v", input, err)
 				continue
 			}
-			if result != nil && result.Success {
-				info := scanner.GetInfo()
-				fmt.Print(rscanner.SuccessMessage(info, result.Url, options.NoColor))
+			for _, r := range result {
+				msg := reflections.ReflectionToString(r, options.NoColor)
+				fmt.Println(msg)
 			}
 		}
 	}
@@ -160,6 +154,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&options.Debug, "debug", "d", false, "Enable debug mode")
 	rootCmd.Flags().BoolVarP(&options.Silent, "silent", "s", false, "Outputs only errors and the results")
 	rootCmd.Flags().StringVarP(&options.File, "file", "f", "", "File with URLs to scan")
+	rootCmd.Flags().UintVarP(&options.MinLength, "min-length", "m", 3, "Minimum value's length to scan for reflections")
 	rootCmd.Flags().UintVarP(&options.RateLimit, "rate-limit", "r", 25, "Number of requests per second")
 	rootCmd.Flags().BoolVarP(&options.NoColor, "no-color", "n", false, "Disable color output")
 	rootCmd.Flags().StringArrayVarP(&options.Headers, "header", "H", []string{}, `Headers to send with the request (specify multiple times)
