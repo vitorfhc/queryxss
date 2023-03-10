@@ -47,8 +47,7 @@ func (s *SimpleQuery) Scan(client HttpRequester, input *Input) (*Output, error) 
 	}
 
 	toFind := []string{}
-	for key, values := range query {
-		toFind = append(toFind, key)
+	for _, values := range query {
 		toFind = append(toFind, values...)
 	}
 
