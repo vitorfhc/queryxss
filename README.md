@@ -4,6 +4,8 @@ QueryXSS is a tool to test for reflected inputs in the response.
 
 **Beware:** This tool is still in development, so you can expect bugs.
 
+![](docs/img/example.png)
+
 ## Scanners
 
 The list below shows the scanners that are currently implemented, and the ones that are planned to be implemented.
