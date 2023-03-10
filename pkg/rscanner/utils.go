@@ -9,6 +9,10 @@ import (
 // The comparison is case insensitive.
 func CaseInsensitiveContains(s string, subs []string) bool {
 	for _, sub := range subs {
+		// TODO: This is a hack to avoid false positives. I need to find a better way to do this.
+		if len(sub) < 3 {
+			continue
+		}
 		if strings.Contains(strings.ToLower(s), strings.ToLower(sub)) {
 			return true
 		}
