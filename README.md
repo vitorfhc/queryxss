@@ -14,10 +14,11 @@ If you have any suggestions, feel free to open an issue.
 
 | Name | Modifications | Implemented |
 | --- | --- | --- |
-| Simple | Requests the URL as it is, with no modifications | YES |
-| PostfixValues | Appends a random token to every value in the query | NO |
-| ReplaceValues | Replaces values in a query with a random token | NO |
-| PostfixSpecialValues | Appends HTML special characters to every value in the query | NO |
+| Simple | Requests the URL as it is, with no modifications. If it doesn't get any reflection and the query has special HTML characters, it will replace them and test again. | YES |
+| ReplaceValuesHtmlChars | Replaces values in a query with HTML special characters. It detects if each special character reflects. | YES |
+| PostfixValues | Appends a random token to every value in the query. | NO |
+| ReplaceValues | Replaces values in a query with a random token. | NO |
+| PostfixSpecialValues | Appends HTML special characters to every value in the query. | NO |
 
 ## Usage
 

@@ -111,6 +111,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	scanners := []reflections.ScanFunc{
 		reflections.SimpleScan,
+		reflections.ReplaceValuesHtmlCharsScan,
 	}
 
 	client := httpclient.NewHttpClient()
