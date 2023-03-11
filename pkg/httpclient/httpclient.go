@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"time"
@@ -30,6 +31,30 @@ func (c *HttpClient) AddLimiter(ctx context.Context, reqPerSecond uint) {
 func (c *HttpClient) AddHeaders(headers map[string][]string) {
 	for k, v := range headers {
 		c.headers[k] = v
+	}
+}
+
+// AllowInsecure allows insecure connections to be made by the client.
+// It skips TLS verification.
+func (c *HttpClient) AllowInsecure() error {
+	currentTransport := c.client.Transport
+	if currentTransport == nil {
+		c.client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		return nil
+	} else {
+		transport, ok := currentTransport.(*http.Transport)
+		if !ok {
+			return fmt.Errorf("transport is not an *http.Transport")
+		}
+		currentTLSClientConfig := transport.TLSClientConfig
+		if currentTLSClientConfig == nil {
+			transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		} else {
+			currentTLSClientConfig.InsecureSkipVerify = true
+		}
+		return nil
 	}
 }
 

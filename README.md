@@ -16,6 +16,8 @@ If you have any suggestions, feel free to open an issue.
 | --- | --- | --- |
 | Simple | Requests the URL as it is, with no modifications. If it doesn't get any reflection and the query has special HTML characters, it will replace them and test again. | YES |
 | ReplaceValuesHtmlChars | Replaces values in a query with HTML special characters. It detects if each special character reflects. | YES |
+| SimplePaths | Checks if the URL has any path that is reflected. | NO |
+| AppendPathsHtmlChars | Appends HTML special characters to different parts of the path | NO |
 | PostfixValues | Appends a random token to every value in the query. | NO |
 | ReplaceValues | Replaces values in a query with a random token. | NO |
 | PostfixSpecialValues | Appends HTML special characters to every value in the query. | NO |
@@ -30,6 +32,7 @@ Usage:
   queryxss [flags]
 
 Flags:
+  -k, --allow-insecure       Allow insecure connections
   -d, --debug                Enable debug mode
   -f, --file string          File with URLs to scan
   -H, --header stringArray   Headers to send with the request (specify multiple times)

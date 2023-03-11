@@ -17,14 +17,15 @@ import (
 )
 
 type cliOptions struct {
-	Debug     bool
-	Silent    bool
-	File      string
-	Stdin     bool
-	Headers   []string
-	RateLimit uint
-	NoColor   bool
-	MinLength uint
+	Debug         bool
+	Silent        bool
+	File          string
+	Stdin         bool
+	Headers       []string
+	RateLimit     uint
+	NoColor       bool
+	MinLength     uint
+	AllowInsecure bool
 }
 
 var options cliOptions
@@ -118,6 +119,14 @@ func run(cmd *cobra.Command, args []string) {
 	client.AddLimiter(cmdCtx, options.RateLimit)
 	client.AddHeaders(headers)
 
+	if options.AllowInsecure {
+		err := client.AllowInsecure()
+		if err != nil {
+			logrus.Errorf("error allowing insecure connections: %v", err)
+			os.Exit(1)
+		}
+	}
+
 	for inputScanner.Scan() {
 		logrus.Debugf("scanning: %q", inputScanner.Text())
 		input := inputScanner.Text()
@@ -152,6 +161,7 @@ func execute() {
 }
 
 func init() {
+	rootCmd.Flags().BoolVarP(&options.AllowInsecure, "allow-insecure", "k", false, "Allow insecure connections")
 	rootCmd.Flags().BoolVarP(&options.Debug, "debug", "d", false, "Enable debug mode")
 	rootCmd.Flags().BoolVarP(&options.Silent, "silent", "s", false, "Outputs only errors and the results")
 	rootCmd.Flags().StringVarP(&options.File, "file", "f", "", "File with URLs to scan")
