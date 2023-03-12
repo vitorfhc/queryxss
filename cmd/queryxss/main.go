@@ -111,8 +111,7 @@ func run(cmd *cobra.Command, args []string) {
 	headers := transformHeaders()
 
 	scanners := []reflections.ScanFunc{
-		reflections.SimpleScan,
-		reflections.ReplaceValuesHtmlCharsScan,
+		reflections.QueryScan,
 	}
 
 	client := httpclient.NewHttpClient()
@@ -130,7 +129,7 @@ func run(cmd *cobra.Command, args []string) {
 	for inputScanner.Scan() {
 		logrus.Debugf("scanning: %q", inputScanner.Text())
 		input := inputScanner.Text()
-		input, err = reflections.AddScheme(input)
+		input, err = reflections.AddSchema(input)
 		if err != nil {
 			logrus.Errorf("error adding scheme to %q: %v", input, err)
 			continue
