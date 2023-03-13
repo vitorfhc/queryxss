@@ -50,7 +50,7 @@ func QueryScan(httpClient ScanHttpClient, originalUrl string, minLength uint) ([
 			if Contains(bodyAsString, value, false) {
 				keyToReflections[key] = &Reflection{
 					Url:      originalUrlParsed.String(),
-					Severity: "info",
+					Severity: SeverityInfo,
 					What:     fmt.Sprintf("query parameter [%s] with value [%s]", key, value),
 					Where:    "body",
 				}
@@ -83,7 +83,7 @@ func QueryScan(httpClient ScanHttpClient, originalUrl string, minLength uint) ([
 			if FindAny(found, htmlSChars, false) {
 				keyToReflections[key] = &Reflection{
 					Url:      originalUrlParsed.String(),
-					Severity: "medium",
+					Severity: SeverityMedium,
 					What:     fmt.Sprintf("query parameter [%s] with value [%s]", key, newValue),
 					Where:    fmt.Sprintf("body [%s]", found),
 				}
