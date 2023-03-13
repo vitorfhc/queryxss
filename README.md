@@ -29,6 +29,14 @@ Flags:
 
 ## Install
 
+### Linux or MacOS
+
+Make sure you have curl installed.
+
+```bash
+curl -LO https://raw.githubusercontent.com/vitorfhc/queryxss/main/install.sh | bash
+```
+
 ### Using go install
 
 Make sure you have [Go installed and configured](https://go.dev/doc/install).
