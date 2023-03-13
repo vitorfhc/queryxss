@@ -20,7 +20,6 @@ Flags:
   -d, --debug                Enable debug mode
   -f, --file string          File with URLs to scan
   -H, --header stringArray   Headers to send with the request (specify multiple times)
-                             Example: -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Random: 1234'
   -h, --help                 help for queryxss
   -m, --min-length uint      Minimum value's length to scan for reflections (default 3)
   -n, --no-color             Disable color output
