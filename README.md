@@ -35,13 +35,13 @@ Flags:
 Make sure you have [Go installed and configured](https://go.dev/doc/install).
 
 ```bash
-go install github.com/vitorfhc/queryxss/cmd/queryxss@latest
+go install github.com/vitorfhc/queryxss@latest
 ```
 
 ### Manual install
 
 ```bash
 git clone github.com/vitorfhc/queryxss
-cd cmd/queryxss
+cd queryxss
 go install
 ```
