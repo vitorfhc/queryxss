@@ -3,6 +3,7 @@ package reflections
 import (
 	"fmt"
 	"net/url"
+	"strings"
 )
 
 func QueryScan(httpClient ScanHttpClient, originalUrl string, minLength uint) ([]*Reflection, error) {
@@ -59,27 +60,8 @@ func QueryScan(httpClient ScanHttpClient, originalUrl string, minLength uint) ([
 	}
 
 	for key, values := range query {
-		id := [2]string{key, ""}
-		if len(key) >= int(minLength) && Contains(responseHeader, key, false) {
-			results[id] = append(results[id], &Reflection{
-				Url:      modifiedUrl,
-				Severity: SeverityInfo,
-				What:     WhatQueryKey,
-				WhatName: key,
-				Where:    WhereHeader,
-			})
-		}
-		if len(key) >= int(minLength) && Contains(bodyAsString, key, false) {
-			results[id] = append(results[id], &Reflection{
-				Url:      modifiedUrl,
-				Severity: SeverityInfo,
-				What:     WhatQueryKey,
-				WhatName: key,
-				Where:    WhereBody,
-			})
-		}
 		for _, value := range values {
-			id = [2]string{key, value}
+			id := [2]string{key, value}
 			if len(value) < int(minLength) {
 				continue
 			}
@@ -100,6 +82,44 @@ func QueryScan(httpClient ScanHttpClient, originalUrl string, minLength uint) ([
 					WhatName: value,
 					Where:    WhereBody,
 				})
+			}
+		}
+	}
+
+	for reflectionKey, reflections := range results {
+		for _, reflection := range reflections {
+			queryKey := reflectionKey[0]
+			beginToken := RandomAlphaString(8)
+			endToken := RandomAlphaString(8)
+			// We don't want to search for header reflections
+			if reflection.Where == WhereHeader {
+				// We can add some CRLF here to make it more interesting
+				continue
+			} else {
+				queryValue := strings.Join(GetHtmlSpecialChars(), "")
+				newQuery := CopyQuery(query)
+				newQuery.Set(queryKey, beginToken+queryValue+endToken)
+				q := newQuery.Encode()
+				originalUrlParsed.RawQuery = q
+				newUrl := originalUrlParsed.String()
+				response, err := httpClient.Get(newUrl)
+				if err != nil {
+					return nil, fmt.Errorf("failed to GET url: %v", err)
+				}
+				defer response.Body.Close()
+				bodyAsString, err := ReaderToString(response.Body)
+				if err != nil {
+					return nil, fmt.Errorf("failed to read response body: %v", err)
+				}
+				findings := FindAllBetween(bodyAsString, beginToken, endToken)
+				for _, finding := range findings {
+					found := FindAny(finding, GetHtmlSpecialChars(), false)
+					if found {
+						reflection.Severity = SeverityMedium
+						reflection.WhatName = queryValue
+						reflection.Url = newUrl
+					}
+				}
 			}
 		}
 	}
