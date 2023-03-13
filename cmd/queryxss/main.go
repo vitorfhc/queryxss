@@ -117,6 +117,7 @@ func run(cmd *cobra.Command, args []string) {
 	client := httpclient.NewHttpClient()
 	client.AddLimiter(cmdCtx, options.RateLimit)
 	client.AddHeaders(headers)
+	client.FollowRedirects(false)
 
 	if options.AllowInsecure {
 		err := client.AllowInsecure()

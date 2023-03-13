@@ -115,8 +115,14 @@ func QueryScan(httpClient ScanHttpClient, originalUrl string, minLength uint) ([
 				for _, finding := range findings {
 					found := FindAny(finding, HtmlSpecialChars(), false)
 					if found {
+						charsNotEncoded := []string{}
+						for _, char := range HtmlSpecialChars() {
+							if Contains(finding, char, false) {
+								charsNotEncoded = append(charsNotEncoded, char)
+							}
+						}
 						reflection.Severity = SeverityMedium
-						reflection.WhatName = queryValue
+						reflection.WhatName = strings.Join(charsNotEncoded, ",")
 						reflection.Url = newUrl
 					}
 				}

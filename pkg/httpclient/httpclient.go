@@ -34,6 +34,15 @@ func (c *HttpClient) AddHeaders(headers map[string][]string) {
 	}
 }
 
+func (c *HttpClient) FollowRedirects(value bool) {
+	c.client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if !value {
+			return http.ErrUseLastResponse
+		}
+		return nil
+	}
+}
+
 // AllowInsecure allows insecure connections to be made by the client.
 // It skips TLS verification.
 func (c *HttpClient) AllowInsecure() error {
