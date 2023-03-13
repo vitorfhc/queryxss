@@ -96,7 +96,7 @@ func QueryScan(httpClient ScanHttpClient, originalUrl string, minLength uint) ([
 				// We can add some CRLF here to make it more interesting
 				continue
 			} else {
-				queryValue := strings.Join(GetHtmlSpecialChars(), "")
+				queryValue := strings.Join(HtmlSpecialChars(), "")
 				newQuery := CopyQuery(query)
 				newQuery.Set(queryKey, beginToken+queryValue+endToken)
 				q := newQuery.Encode()
@@ -113,7 +113,7 @@ func QueryScan(httpClient ScanHttpClient, originalUrl string, minLength uint) ([
 				}
 				findings := FindAllBetween(bodyAsString, beginToken, endToken)
 				for _, finding := range findings {
-					found := FindAny(finding, GetHtmlSpecialChars(), false)
+					found := FindAny(finding, HtmlSpecialChars(), false)
 					if found {
 						reflection.Severity = SeverityMedium
 						reflection.WhatName = queryValue
