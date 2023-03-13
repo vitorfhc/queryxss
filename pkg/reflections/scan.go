@@ -34,11 +34,46 @@ func (s SeverityType) String() string {
 	return "UNKNOWN"
 }
 
+type WhatType int
+
+const (
+	WhatQueryKey = iota
+	WhatQueryValue
+)
+
+func (w WhatType) String() string {
+	switch w {
+	case WhatQueryKey:
+		return "query key"
+	case WhatQueryValue:
+		return "query value"
+	}
+	return "UNKNOWN"
+}
+
+type WhereType int
+
+const (
+	WhereHeader = iota
+	WhereBody
+)
+
+func (w WhereType) String() string {
+	switch w {
+	case WhereHeader:
+		return "header"
+	case WhereBody:
+		return "body"
+	}
+	return "UNKNOWN"
+}
+
 type Reflection struct {
 	Url      string
 	Severity SeverityType
-	What     string
-	Where    string
+	What     WhatType
+	WhatName string
+	Where    WhereType
 }
 
 // ScanFunc is the function signature for the scan functions.

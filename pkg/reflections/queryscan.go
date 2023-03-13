@@ -3,7 +3,6 @@ package reflections
 import (
 	"fmt"
 	"net/url"
-	"strings"
 )
 
 func QueryScan(httpClient ScanHttpClient, originalUrl string, minLength uint) ([]*Reflection, error) {
@@ -17,6 +16,9 @@ func QueryScan(httpClient ScanHttpClient, originalUrl string, minLength uint) ([
 		return []*Reflection{}, nil
 	}
 
+	// TODO(vitorfhc): I think this could be improved.
+	// Example: domain.tld/?q&q=2 would be replaced by domain.tld/?q=RANDOM
+	// We are loosing the second q=2, which could be a reflection.
 	for key, values := range query {
 		for _, value := range values {
 			if value == "" {
@@ -27,74 +29,85 @@ func QueryScan(httpClient ScanHttpClient, originalUrl string, minLength uint) ([
 	}
 
 	originalUrlParsed.RawQuery = query.Encode()
-	response, err := httpClient.Get(originalUrlParsed.String())
+	modifiedUrl := originalUrlParsed.String()
+	response, err := httpClient.Get(modifiedUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to GET url: %v", err)
 	}
 	defer response.Body.Close()
+
+	var responseHeader string
+	for key, values := range response.Header {
+		for _, value := range values {
+			responseHeader += fmt.Sprintf("%s: %s\n", key, value)
+		}
+	}
 
 	bodyAsString, err := ReaderToString(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
-	keyToReflections := map[string]*Reflection{}
+	results := map[[2]string][]*Reflection{}
 	for key, values := range query {
+		id := [2]string{key, ""}
+		results[id] = []*Reflection{}
 		for _, value := range values {
+			id = [2]string{key, value}
+			results[id] = []*Reflection{}
+		}
+	}
+
+	for key, values := range query {
+		id := [2]string{key, ""}
+		if len(key) >= int(minLength) && Contains(responseHeader, key, false) {
+			results[id] = append(results[id], &Reflection{
+				Url:      modifiedUrl,
+				Severity: SeverityInfo,
+				What:     WhatQueryKey,
+				WhatName: key,
+				Where:    WhereHeader,
+			})
+		}
+		if len(key) >= int(minLength) && Contains(bodyAsString, key, false) {
+			results[id] = append(results[id], &Reflection{
+				Url:      modifiedUrl,
+				Severity: SeverityInfo,
+				What:     WhatQueryKey,
+				WhatName: key,
+				Where:    WhereBody,
+			})
+		}
+		for _, value := range values {
+			id = [2]string{key, value}
 			if len(value) < int(minLength) {
 				continue
 			}
-			if _, ok := keyToReflections[key]; ok {
-				continue
+			if Contains(responseHeader, value, false) {
+				results[id] = append(results[id], &Reflection{
+					Url:      modifiedUrl,
+					Severity: SeverityInfo,
+					What:     WhatQueryValue,
+					WhatName: value,
+					Where:    WhereHeader,
+				})
 			}
 			if Contains(bodyAsString, value, false) {
-				keyToReflections[key] = &Reflection{
-					Url:      originalUrlParsed.String(),
+				results[id] = append(results[id], &Reflection{
+					Url:      modifiedUrl,
 					Severity: SeverityInfo,
-					What:     fmt.Sprintf("query parameter [%s] with value [%s]", key, value),
-					Where:    "body",
-				}
+					What:     WhatQueryValue,
+					WhatName: value,
+					Where:    WhereBody,
+				})
 			}
 		}
 	}
 
-	originalQuery := CopyQuery(query)
-	htmlSChars := GetHtmlSpecialChars()
-	htmlSCharsStr := strings.Join(htmlSChars, "")
-	tokenLen := 6
-	for key := range keyToReflections {
-		query = CopyQuery(originalQuery)
-		tokenBegin := RandomAlphaString(tokenLen)
-		tokenEnd := RandomAlphaString(tokenLen)
-		newValue := tokenBegin + htmlSCharsStr + tokenEnd
-		query.Set(key, newValue)
-		originalUrlParsed.RawQuery = query.Encode()
-		response, err := httpClient.Get(originalUrlParsed.String())
-		if err != nil {
-			return nil, fmt.Errorf("failed to GET url: %v", err)
-		}
-		defer response.Body.Close()
-		bodyAsString, err := ReaderToString(response.Body)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read response body: %v", err)
-		}
-		founds := FindAllBetween(bodyAsString, tokenBegin, tokenEnd)
-		for _, found := range founds {
-			if FindAny(found, htmlSChars, false) {
-				keyToReflections[key] = &Reflection{
-					Url:      originalUrlParsed.String(),
-					Severity: SeverityMedium,
-					What:     fmt.Sprintf("query parameter [%s] with value [%s]", key, newValue),
-					Where:    fmt.Sprintf("body [%s]", found),
-				}
-			}
-		}
+	resultsFlat := []*Reflection{}
+	for _, reflections := range results {
+		resultsFlat = append(resultsFlat, reflections...)
 	}
 
-	results := []*Reflection{}
-	for _, reflection := range keyToReflections {
-		results = append(results, reflection)
-	}
-
-	return results, nil
+	return resultsFlat, nil
 }

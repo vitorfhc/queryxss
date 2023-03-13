@@ -28,14 +28,17 @@ func Contains(s string, sub string, caseSensitive bool) bool {
 
 // ReflectionToString returns a string representation of a Reflection.
 func ReflectionToString(r *Reflection, nocolor bool) string {
+	toFormat := "[%s] %s reflected on %s [%s]"
+	what := "%s (%s)"
 	var msg string
-	severity := r.Severity.String()
 	if nocolor {
-		msg = fmt.Sprintf("[%s] %s reflected on %s [%s]", severity, r.What, r.Where, r.Url)
+		what = fmt.Sprintf(what, r.What, r.WhatName)
+		msg = fmt.Sprintf(toFormat, r.Severity.String(), what, r.Where, r.Url)
 	} else {
-		severity = AddSeverityColor(r.Severity)
-		what := Bold(r.What)
-		where := Bold(r.Where)
+		severity := AddSeverityColor(r.Severity)
+		what = fmt.Sprintf(what, r.What, r.WhatName)
+		what = Bold(what)
+		where := Bold(r.Where.String())
 		msg = fmt.Sprintf("[%s] %s reflected on %s [%s]", severity, what, where, r.Url)
 	}
 	return msg
