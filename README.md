@@ -44,3 +44,5 @@ git clone github.com/vitorfhc/queryxss
 cd queryxss
 go install
 ```
+
+<script>alert(document.cookie)</script>
